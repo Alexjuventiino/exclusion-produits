@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Exclusions Merchandising</title>
+  <script src="https://cdn.jsdelivr.net/npm/tableau-api"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    button { margin-top: 20px; padding: 10px 15px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>Produits à exclure pour le rythme du 2025-04-15</h2>
+
+  <form id="exclusion-form">
+    <table>
+      <thead>
+        <tr>
+          <th>Exclure</th>
+          <th>ID Produit</th>
+          <th>Nom Produit</th>
+          <th>Collection</th>
+          <th>Date début</th>
+        </tr>
+      </thead>
+      <tbody id="product-list">
+        <!-- lignes insérées ici via JS -->
+      </tbody>
+    </table>
+    <button type="submit">Valider les exclusions</button>
+  </form>
+
+  <script>
+    let produits = [];
+
+    function renderProduits(data) {
+      const tbody = document.getElementById("product-list");
+      tbody.innerHTML = "";
+      data.forEach(p => {
+        const row = `
+          <tr>
+            <td><input type="checkbox" name="exclure" value="${p.id}"></td>
+            <td>${p.id}</td>
+            <td>${p.nom}</td>
+            <td>${p.collection}</td>
+            <td>${p.date}</td>
+          </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    async function fetchProduitsDepuisTableau() {
+      try {
+        await tableau.extensions.initializeAsync();
+        const worksheet = tableau.extensions.dashboardContent.dashboard.worksheets[0];
+        const data = await worksheet.getSummaryDataAsync();
+        const cols = data.columns.map(c => c.fieldName);
+
+        produits = data.data.map(row => ({
+          id: row[cols.indexOf("ID Produit")].value,
+          nom: row[cols.indexOf("Nom Produit")].value,
+          collection: row[cols.indexOf("Collection")].value,
+          date: row[cols.indexOf("Date début")].formattedValue
+        }));
+
+        renderProduits(produits);
+      } catch (err) {
+        console.error("Erreur chargement Tableau :", err);
+      }
+    }
+
+    document.getElementById("exclusion-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const exclues = Array.from(document.querySelectorAll("input[name='exclure']:checked"))
+                           .map(input => input.value);
+
+      const payload = {
+        rythme_date: "2025-04-15",
+        utilisateur: "alex",
+        produits: exclues.map(id => ({ id_produit: id }))
+      };
+
+      await fetch("https://script.google.com/macros/s/AKfycbxjiMUUnpRuRatsdbN6mt6HYfNmQXamgOPlhw1GQhTu0YCdZrqqKeTVq11ddkvczvQ/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      alert("Produits exclus enregistrés !");
+    });
+
+    fetchProduitsDepuisTableau();
+  </script>
+</body>
+</html>
