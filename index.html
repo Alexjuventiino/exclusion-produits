@@ -20,10 +20,10 @@
       <thead>
         <tr>
           <th>Exclure</th>
-          <th>ID Produit</th>
-          <th>Nom Produit</th>
-          <th>Collection</th>
-          <th>Date début</th>
+          <th>Key Pcc</th>
+          <th>Code Rc</th>
+          <th>Saison</th>
+          <th>Sem. Début</th>
         </tr>
       </thead>
       <tbody id="product-list">
@@ -55,15 +55,15 @@
     async function fetchProduitsDepuisTableau() {
       try {
         await tableau.extensions.initializeAsync();
-        const worksheet = tableau.extensions.dashboardContent.dashboard.worksheets[0];
+        const worksheet = tableau.extensions.dashboardContent.dashboard.worksheets.find(ws => ws.name === "DispoMerch");
         const data = await worksheet.getSummaryDataAsync();
         const cols = data.columns.map(c => c.fieldName);
 
         produits = data.data.map(row => ({
-          id: row[cols.indexOf("ID Produit")].value,
-          nom: row[cols.indexOf("Nom Produit")].value,
-          collection: row[cols.indexOf("Collection")].value,
-          date: row[cols.indexOf("Date début")].formattedValue
+          id: row[cols.indexOf("Key Pcc")].value,
+          nom: row[cols.indexOf("Code Rc")].value,
+          collection: row[cols.indexOf("Saison")].value,
+          date: row[cols.indexOf("Sem. Début")].formattedValue
         }));
 
         renderProduits(produits);
