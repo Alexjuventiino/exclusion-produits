@@ -105,10 +105,19 @@
       alert("Veuillez sélectionner au moins un produit");
       return;
     }
-    
+
+    let userName = "utilisateur_inconnu";
+    try {
+      userName = tableau.extensions.dashboardContent.user?.name || 
+                tableau.extensions.dashboardContent.user?.username ||
+                tableau.extensions.dashboardContent.user?.email ||
+                "utilisateur_inconnu";
+    } catch (e) {
+      console.warn("Impossible de récupérer le nom d'utilisateur", e);
+    }
     const payload = {
       rythme_date: "2025-04-15",
-      utilisateur: tableau.extensions.dashboardContent.user.name || "utilisateur_inconnu",
+      utilisateur: userName,
       produits: selectedProducts.map(id => ({ id_produit: id }))
     };
 
