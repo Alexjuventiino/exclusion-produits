@@ -121,7 +121,7 @@
       produits: selectedProducts.map(id => ({ id_produit: id }))
     };
 
-    const response = await fetch("https://exclusions-produits-api.onrender.com", {
+    const response = await fetch("https://exclusions-produits-api.onrender.com/exclusions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
