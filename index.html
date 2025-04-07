@@ -112,7 +112,7 @@
       produits: selectedProducts.map(id => ({ id_produit: id }))
     };
 
-    const response = await fetch("https://script.google.com/macros/s/AKfycbxjiMUUnpRuRatsdbN6mt6HYfNmQXamgOPlhw1GQhTu0YCdZrqqKeTVq11ddkvczvQ/exec", {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbwyrBeZAYjRA7sVHZaMm_zUK3VhKhHc2fITq_P9kFJcXgNiRpa4IiI8SUwvFsla-JA/exec", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
