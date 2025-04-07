@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Exclusions Merchandising</title>
-  <script src="https://cdn.jsdelivr.net/npm/tableau-api"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@tableau/tableau-viz@latest/dist/tableau-viz.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -13,7 +13,17 @@
   </style>
 </head>
 <body>
+
   <h2>Produits à exclure pour le rythme du 2025-04-15</h2>
+
+  <!-- Composant Embedding API v3 -->
+  <tableau-viz
+    id="tableauViz"
+    src="https://eu-west-1a.online.tableau.com/#/site/graindemalice/views/DispoMerch/TdB-DisponibilitMerch_"
+    width="1000"
+    height="600"
+    toolbar="hidden"
+  ></tableau-viz>
 
   <form id="exclusion-form">
     <table>
@@ -26,17 +36,33 @@
           <th>Sem. Début</th>
         </tr>
       </thead>
-      <tbody id="product-list">
-        <!-- lignes insérées ici via JS -->
-      </tbody>
+      <tbody id="product-list"></tbody>
     </table>
     <button type="submit">Valider les exclusions</button>
   </form>
 
-  <script>
+  <script type="module">
     let produits = [];
 
-    function renderProduits(data) {
+    async function chargerProduitsDepuisViz() {
+      const viz = document.getElementById("tableauViz");
+      await viz.renderPromise;
+
+      const worksheet = viz.workbook.activeSheet.worksheets.find(ws => ws.name === "DispoMerch");
+      const summary = await worksheet.getSummaryDataAsync();
+      const cols = summary.columns.map(c => c.fieldName);
+
+      produits = summary.data.map(row => ({
+        id: row[cols.indexOf("Key Pcc")].value,
+        nom: row[cols.indexOf("Code Rc")].value,
+        collection: row[cols.indexOf("Saison")].value,
+        date: row[cols.indexOf("Sem. Début")].formattedValue
+      }));
+
+      afficherProduits(produits);
+    }
+
+    function afficherProduits(data) {
       const tbody = document.getElementById("product-list");
       tbody.innerHTML = "";
       data.forEach(p => {
@@ -50,26 +76,6 @@
           </tr>`;
         tbody.innerHTML += row;
       });
-    }
-
-    async function fetchProduitsDepuisTableau() {
-      try {
-        await tableau.extensions.initializeAsync();
-        const worksheet = tableau.extensions.dashboardContent.dashboard.worksheets.find(ws => ws.name === "DispoMerch");
-        const data = await worksheet.getSummaryDataAsync();
-        const cols = data.columns.map(c => c.fieldName);
-
-        produits = data.data.map(row => ({
-          id: row[cols.indexOf("Key Pcc")].value,
-          nom: row[cols.indexOf("Code Rc")].value,
-          collection: row[cols.indexOf("Saison")].value,
-          date: row[cols.indexOf("Sem. Début")].formattedValue
-        }));
-
-        renderProduits(produits);
-      } catch (err) {
-        console.error("Erreur chargement Tableau :", err);
-      }
     }
 
     document.getElementById("exclusion-form").addEventListener("submit", async (e) => {
@@ -92,7 +98,7 @@
       alert("Produits exclus enregistrés !");
     });
 
-    fetchProduitsDepuisTableau();
+    chargerProduitsDepuisViz();
   </script>
 </body>
 </html>
